@@ -23,8 +23,11 @@ import (
 )
 
 func main() {
-	cfg := config.Load()
 	logger := log.New(os.Stdout, "[wa-back] ", log.LstdFlags|log.LUTC|log.Lmicroseconds)
+	if err := config.LoadDotEnv(".env", ".env.local"); err != nil {
+		logger.Printf("failed loading .env files: %v", err)
+	}
+	cfg := config.Load()
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
@@ -36,18 +39,20 @@ func main() {
 	defer queueCloser()
 
 	modelRouter := ai.NewModelRouter(ai.ModelRouterConfig{
-		SuggestionPrimary:  cfg.OpenAIModelSuggestionPrimary,
-		SuggestionFallback: cfg.OpenAIModelSuggestionFallback,
-		SummaryPrimary:     cfg.OpenAIModelSummaryPrimary,
-		SummaryFallback:    cfg.OpenAIModelSummaryFallback,
-		ReportPrimary:      cfg.OpenAIModelReportPrimary,
-		ReportFallback:     cfg.OpenAIModelReportFallback,
+		SuggestionPrimary:  cfg.OpenRouterModelSuggestionPrimary,
+		SuggestionFallback: cfg.OpenRouterModelSuggestionFallback,
+		SummaryPrimary:     cfg.OpenRouterModelSummaryPrimary,
+		SummaryFallback:    cfg.OpenRouterModelSummaryFallback,
+		ReportPrimary:      cfg.OpenRouterModelReportPrimary,
+		ReportFallback:     cfg.OpenRouterModelReportFallback,
 	})
-	aiClient := ai.NewOpenAIClient(ai.OpenAIClientConfig{
-		APIKey:     cfg.OpenAIAPIKey,
-		BaseURL:    cfg.OpenAIBaseURL,
-		Timeout:    time.Duration(cfg.OpenAITimeoutMS) * time.Millisecond,
-		MaxRetries: cfg.OpenAIMaxRetries,
+	aiClient := ai.NewOpenRouterClient(ai.OpenRouterClientConfig{
+		APIKey:     cfg.OpenRouterAPIKey,
+		BaseURL:    cfg.OpenRouterBaseURL,
+		Timeout:    time.Duration(cfg.OpenRouterTimeoutMS) * time.Millisecond,
+		MaxRetries: cfg.OpenRouterMaxRetries,
+		SiteURL:    cfg.OpenRouterSiteURL,
+		AppName:    cfg.OpenRouterAppName,
 	})
 	contextBuilder := contextbuilder.NewBuilder(contextbuilder.NewBasicRetriever())
 	semanticCache := cache.NewSemanticCache(cache.Config{
@@ -71,6 +76,7 @@ func main() {
 		API:            api,
 		Logger:         logger,
 		AuthToken:      cfg.AuthToken,
+		CORSOrigins:    cfg.CORSAllowedOrigins,
 		RateLimitRPS:   cfg.RateLimitRPS,
 		RateLimitBurst: cfg.RateLimitBurst,
 	})

@@ -34,22 +34,22 @@ type ModelRouter struct {
 
 func NewModelRouter(config ModelRouterConfig) *ModelRouter {
 	if strings.TrimSpace(config.SuggestionPrimary) == "" {
-		config.SuggestionPrimary = "gpt-4.1-mini"
+		config.SuggestionPrimary = "openai/gpt-4o-mini"
 	}
 	if strings.TrimSpace(config.SuggestionFallback) == "" {
-		config.SuggestionFallback = "gpt-4.1-nano"
+		config.SuggestionFallback = "openai/gpt-4o-mini"
 	}
 	if strings.TrimSpace(config.SummaryPrimary) == "" {
-		config.SummaryPrimary = "gpt-4.1-mini"
+		config.SummaryPrimary = "openai/gpt-4o-mini"
 	}
 	if strings.TrimSpace(config.SummaryFallback) == "" {
-		config.SummaryFallback = "gpt-4.1-nano"
+		config.SummaryFallback = "openai/gpt-4o-mini"
 	}
 	if strings.TrimSpace(config.ReportPrimary) == "" {
-		config.ReportPrimary = "gpt-4.1"
+		config.ReportPrimary = "openai/gpt-4o-mini"
 	}
 	if strings.TrimSpace(config.ReportFallback) == "" {
-		config.ReportFallback = "gpt-4.1-mini"
+		config.ReportFallback = "openai/gpt-4o-mini"
 	}
 
 	return &ModelRouter{config: config}

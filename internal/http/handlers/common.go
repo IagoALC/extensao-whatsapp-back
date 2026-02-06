@@ -40,6 +40,7 @@ type suggestionRequest struct {
 	Locale                 string          `json:"locale"`
 	Tone                   string          `json:"tone"`
 	ContextWindow          int             `json:"context_window"`
+	Messages               []string        `json:"messages,omitempty"`
 	MaxCandidates          int             `json:"max_candidates,omitempty"`
 	IncludeLastUserMessage bool            `json:"include_last_user_message,omitempty"`
 }

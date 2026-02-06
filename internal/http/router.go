@@ -12,6 +12,7 @@ type RouterDependencies struct {
 	API            *handlers.API
 	Logger         *log.Logger
 	AuthToken      string
+	CORSOrigins    []string
 	RateLimitRPS   float64
 	RateLimitBurst int
 }
@@ -27,6 +28,9 @@ func NewRouter(deps RouterDependencies) http.Handler {
 	handler := http.Handler(mux)
 	handler = middleware.Auth(deps.AuthToken)(handler)
 	handler = middleware.RateLimit(deps.RateLimitRPS, deps.RateLimitBurst)(handler)
+	handler = middleware.CORS(middleware.CORSConfig{
+		AllowedOrigins: deps.CORSOrigins,
+	})(handler)
 	handler = middleware.Trace(deps.Logger)(handler)
 	handler = middleware.RequestID(handler)
 

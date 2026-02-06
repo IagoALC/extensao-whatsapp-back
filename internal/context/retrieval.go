@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -80,16 +81,7 @@ func extractFragments(value any, fragments *[]string, limit int) {
 
 	switch typed := value.(type) {
 	case map[string]any:
-		for key, nested := range typed {
-			if len(*fragments) >= limit {
-				return
-			}
-			if isInterestingKey(key) {
-				extractFragments(nested, fragments, limit)
-				continue
-			}
-			extractFragments(nested, fragments, limit)
-		}
+		extractFragmentsFromMap(typed, fragments, limit)
 	case []any:
 		for _, nested := range typed {
 			if len(*fragments) >= limit {
@@ -109,10 +101,68 @@ func extractFragments(value any, fragments *[]string, limit int) {
 	}
 }
 
+var prioritizedFragmentKeys = []string{
+	"messages",
+	"message",
+	"last_user_message",
+	"text",
+	"content",
+	"body",
+	"topic_filter",
+	"summary_type",
+	"report_type",
+	"tone",
+	"locale",
+	"context_window",
+}
+
+func extractFragmentsFromMap(value map[string]any, fragments *[]string, limit int) {
+	if len(*fragments) >= limit {
+		return
+	}
+
+	normalized := make(map[string]any, len(value))
+	for key, nested := range value {
+		normalized[strings.ToLower(strings.TrimSpace(key))] = nested
+	}
+
+	processed := make(map[string]struct{}, len(normalized))
+	for _, key := range prioritizedFragmentKeys {
+		nested, exists := normalized[key]
+		if !exists {
+			continue
+		}
+		extractFragments(nested, fragments, limit)
+		processed[key] = struct{}{}
+		if len(*fragments) >= limit {
+			return
+		}
+	}
+
+	remainingInteresting := make([]string, 0, len(normalized))
+	for key := range normalized {
+		if _, alreadyProcessed := processed[key]; alreadyProcessed {
+			continue
+		}
+		if !isInterestingKey(key) {
+			continue
+		}
+		remainingInteresting = append(remainingInteresting, key)
+	}
+	sort.Strings(remainingInteresting)
+
+	for _, key := range remainingInteresting {
+		extractFragments(normalized[key], fragments, limit)
+		if len(*fragments) >= limit {
+			return
+		}
+	}
+}
+
 func isInterestingKey(key string) bool {
 	normalized := strings.ToLower(strings.TrimSpace(key))
 	switch normalized {
-	case "message", "messages", "text", "topic_filter", "summary_type", "report_type", "tone", "locale", "context_window":
+	case "message", "messages", "text", "content", "body", "last_user_message", "topic_filter", "summary_type", "report_type", "tone", "locale", "context_window":
 		return true
 	default:
 		return false

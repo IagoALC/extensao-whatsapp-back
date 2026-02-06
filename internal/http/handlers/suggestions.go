@@ -44,6 +44,7 @@ func (api *API) Suggestions(w http.ResponseWriter, r *http.Request) {
 		writeError(w, r, http.StatusBadRequest, "invalid_request", "context_window must be between 5 and 80")
 		return
 	}
+	request.Messages = sanitizeSuggestionMessages(request.Messages, request.ContextWindow)
 
 	rawPayload, _ := json.Marshal(request)
 	if err := policy.ValidateManualOnlyPayload(rawPayload); err != nil {
@@ -85,4 +86,46 @@ func (api *API) Suggestions(w http.ResponseWriter, r *http.Request) {
 		"hitl":           policy.DefaultHITLMetadata(),
 	}
 	writeJSON(w, http.StatusOK, response)
+}
+
+const (
+	minSuggestionMessages     = 8
+	maxSuggestionMessages     = 80
+	maxSuggestionMessageRunes = 360
+)
+
+func sanitizeSuggestionMessages(messages []string, contextWindow int) []string {
+	limit := contextWindow * 2
+	if limit < minSuggestionMessages {
+		limit = minSuggestionMessages
+	}
+	if limit > maxSuggestionMessages {
+		limit = maxSuggestionMessages
+	}
+
+	sanitized := make([]string, 0, limit)
+	for _, message := range messages {
+		if len(sanitized) >= limit {
+			break
+		}
+
+		trimmed := strings.TrimSpace(message)
+		if trimmed == "" {
+			continue
+		}
+		trimmed = truncateRunes(trimmed, maxSuggestionMessageRunes)
+		sanitized = append(sanitized, trimmed)
+	}
+	return sanitized
+}
+
+func truncateRunes(value string, maxRunes int) string {
+	if maxRunes <= 0 {
+		return ""
+	}
+	runes := []rune(value)
+	if len(runes) <= maxRunes {
+		return value
+	}
+	return string(runes[:maxRunes]) + "..."
 }
