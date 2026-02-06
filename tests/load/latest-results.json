@@ -1,0 +1,59 @@
+{
+  "generated_at_utc": "2026-02-06T00:24:43.827652437Z",
+  "environment": "local-httptest",
+  "results": [
+    {
+      "name": "suggestions_sync",
+      "total": 260,
+      "success": 260,
+      "errors": 0,
+      "p50_ms": 1.98,
+      "p95_ms": 4.67,
+      "p99_ms": 5.95,
+      "max_ms": 7.38,
+      "throughput_rps": 10741.25
+    },
+    {
+      "name": "summaries_enqueue",
+      "total": 180,
+      "success": 180,
+      "errors": 0,
+      "p50_ms": 3.55,
+      "p95_ms": 27.23,
+      "p99_ms": 33.07,
+      "max_ms": 35.95,
+      "throughput_rps": 3879.69
+    },
+    {
+      "name": "reports_enqueue",
+      "total": 180,
+      "success": 180,
+      "errors": 0,
+      "p50_ms": 2.85,
+      "p95_ms": 10.1,
+      "p99_ms": 14.86,
+      "max_ms": 15.14,
+      "throughput_rps": 7430.47
+    },
+    {
+      "name": "reports_list",
+      "total": 120,
+      "success": 120,
+      "errors": 0,
+      "p50_ms": 3.32,
+      "p95_ms": 6.8,
+      "p99_ms": 8.59,
+      "max_ms": 11.14,
+      "throughput_rps": 5188.69
+    }
+  ],
+  "token_tuning": {
+    "legacy_tokens": 101,
+    "optimized_tokens": 56,
+    "reduction_pct": 44.55
+  },
+  "slo_evaluation": {
+    "QT-001_summary_endpoint_p95_le_5000ms": true,
+    "QT-002_suggestion_endpoint_p95_le_2000ms": true
+  }
+}
